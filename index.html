@@ -4,15 +4,24 @@
   <meta charset="UTF-8" />
   <title>3D Rotating Ball</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #000; }
-    canvas { display: block; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <!-- Reliable Three.js CDN -->
+
+  <!-- ✅ Load Three.js FIRST -->
   <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+
+  <!-- ✅ Now safely use THREE -->
   <script>
-    // Scene setup
+    // Scene, Camera, Renderer setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -23,27 +32,3 @@
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // Sphere
-    const geometry = new THREE.SphereGeometry(1, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x00ffff,
-      metalness: 0.5,
-      roughness: 0.3,
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-
-    // Light
-    const light = new THREE.PointLight(0xffffff, 1, 100);
-    light.position.set(5, 5, 5);
-    scene.add(light);
-
-    camera.position.z = 4;
-
-    // Animation loop
-    function animate() {
-      requestAnimationFrame(animate);
-      sphere.rotation.y += 0.01;
-      renderer.render(scene, camera);
