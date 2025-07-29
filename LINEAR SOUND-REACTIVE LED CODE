@@ -1,0 +1,58 @@
+from machine import ADC, Pin, PWM
+import time
+
+# === CONFIGURATION ===
+mic_pin = ADC(26)  # KY-038 analog out to GP26 (ADC0)
+led1 = PWM(Pin(15))  # LED 1 on GP15
+led2 = PWM(Pin(14))  # LED 2 on GP14
+led3 = PWM(Pin(13))  # LED 3 on GP13
+
+# Set PWM frequency
+for led in [led1, led2, led3]:
+    led.freq(1000)
+
+# Sensitivity tuning
+noise_floor = 2000         # Ignore noise below this
+gain_factor = 2            # Adjust to amplify quiet sounds
+brightness_scale = 3       # How much to multiply the signal for visible brightness
+
+# === CALIBRATION ===
+def calibrate_baseline(samples=100):
+    total = 0
+    for _ in range(samples):
+        total += mic_pin.read_u16()
+        time.sleep(0.01)
+    return total // samples
+
+baseline = calibrate_baseline()
+print("Baseline:", baseline)
+
+# === LED Update (Linear Reaction) ===
+def update_leds(sound_intensity):
+    if sound_intensity < noise_floor:
+        brightness = 0
+    else:
+        brightness = (sound_intensity - noise_floor) * brightness_scale
+        brightness = min(brightness, 65535)
+
+    led1.duty_u16(brightness)
+    led2.duty_u16(brightness)
+    led3.duty_u16(brightness)
+
+# === MAIN LOOP ===
+def main_loop():
+    while True:
+        raw = mic_pin.read_u16()
+        sound_level = raw - baseline
+        if sound_level < 0:
+            sound_level = 0
+
+        sound_level *= gain_factor
+        if sound_level > 65535:
+            sound_level = 65535
+
+        update_leds(sound_level)
+        time.sleep(0.01)  # 10ms refresh
+
+# Run it!
+main_loop()
